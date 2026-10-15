@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>جسر AI Live</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600;700&family=Poppins:wght@700&display=swap">
+<style>
+:root{--bg:#060920;--panel:#0e1438;--panel2:#131a47;--line:rgba(120,135,255,.18);--line2:rgba(120,135,255,.32);--fg:#eef0ff;--muted:#9aa2d6;--blue:#2f45ff;--violet:#8f3dff;--cyan:#62d6ff;--ok:#35d39a;--warn:#ffb547;--bad:#ff5d7a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:"IBM Plex Sans Arabic","Readex Pro",system-ui,sans-serif;font-size:15px;
+background-image:radial-gradient(900px 500px at 50% 20%,rgba(70,110,255,.35),transparent 65%),linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:auto,48px 48px,48px 48px}
+button,input,select{font:inherit;color:inherit}
+.app{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;max-width:1100px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:12px}
+.badge{width:44px;height:44px;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 6px 22px rgba(70,110,255,.45)}
+.badge img{width:100%;height:100%;object-fit:cover}
+.word{font-family:Poppins,sans-serif;font-weight:700;font-size:22px;line-height:1}
+.word b{background:linear-gradient(90deg,var(--blue),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);font-size:12px}
+.live{margin-inline-start:8px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#fff;background:var(--bad);border-radius:6px;padding:2px 7px}
+.sp{flex:1}
+.icon{width:40px;height:40px;border-radius:12px;border:1px solid var(--line2);background:var(--panel);cursor:pointer}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:center;padding-block:10px}
+.center{display:flex;flex-direction:column;align-items:center;gap:16px}
+.orb{position:relative;width:min(78vw,460px);aspect-ratio:1}
+.orb canvas{position:absolute;inset:0;width:100%;height:100%}
+.robot{position:absolute;left:50%;top:50%;width:30%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#fff;overflow:hidden;box-shadow:0 0 0 3px rgba(98,214,255,.4),0 0 60px rgba(70,110,255,.6);transition:box-shadow .2s}
+.robot{background:radial-gradient(circle at 35% 30%,#fff,#cfd8ff)}.robot img{width:100%;height:100%;object-fit:cover;transform:scale(1.08);transition:transform .08s}
+.state{font-family:"Readex Pro",sans-serif;color:var(--muted);display:flex;gap:8px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;background:#6870a8}.dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}.dot.mid{background:var(--warn)}.dot.bad{background:var(--bad)}
+.call{width:84px;height:84px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:radial-gradient(circle at 30% 30%,var(--cyan),var(--blue) 55%,var(--violet));box-shadow:0 10px 36px rgba(70,110,255,.55);display:grid;place-items:center;position:relative}
+.call svg{width:34px;height:34px}
+.call.on{background:radial-gradient(circle at 30% 30%,#ff8fa4,var(--bad) 60%,#a3123a)}
+.call.on::before{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--bad);animation:ping 1.4s ease-out infinite}
+@keyframes ping{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}
+.hint{color:var(--muted);font-size:13px;text-align:center;max-width:460px}
+.side{background:rgba(14,20,56,.85);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;max-height:72vh;min-width:0}
+.side h3{margin:0;font-family:"Readex Pro",sans-serif;font-size:15px}
+.log{overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.m{padding:8px 12px;border-radius:14px;font-size:14px;white-space:pre-wrap;max-width:92%}
+.m.u{align-self:flex-start;background:linear-gradient(135deg,var(--blue),var(--violet))}
+.m.a{align-self:flex-end;background:var(--panel2);border:1px solid var(--line)}
+.m.s{align-self:center;color:var(--muted);font-size:12px;background:none;border:1px dashed var(--line2)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.k{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.k .l{font-size:11px;color:var(--muted)}.k .v{font-family:"Readex Pro",sans-serif;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+footer{color:#6870a8;font-size:12px;text-align:center;padding-top:8px}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line2);border-radius:18px;padding:18px;width:min(520px,94vw)}
+dialog::backdrop{background:rgba(3,5,20,.6)}
+dialog label{display:grid;gap:4px;font-size:13px;color:var(--muted);margin-top:10px}
+dialog input,dialog select{background:#0a0f2e;border:1px solid var(--line2);border-radius:10px;padding:9px 10px}
+.btn{border:1px solid var(--line2);background:var(--panel2);border-radius:10px;padding:8px 14px;cursor:pointer}
+.btn.pri{background:linear-gradient(135deg,var(--blue),var(--violet));border-color:transparent;color:#fff}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted);line-height:1.7}
+a{color:var(--cyan)}
+@media (max-width:860px){main{grid-template-columns:1fr}.side{max-height:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="badge"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""></div>
+<div><div class="word" dir="ltr">jesr <b>ai</b><span class="live">LIVE</span></div><div class="sub">مساعدك الصوتي المباشر</div></div>
+<div class="sp"></div>
+<button class="icon" id="setBtn" title="الإعدادات" aria-label="الإعدادات">⚙</button>
+</header>
+<main>
+<div class="center">
+<div class="orb" id="orb"><canvas id="cv"></canvas><div class="robot" id="robot"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="جسر AI"></div></div>
+<div class="state"><span class="dot" id="dot"></span><span id="stateTxt">اضغط الزر وابدأ احكي</span></div>
+<button class="call" id="callBtn" aria-label="ابدأ المحادثة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button>
+<div class="hint" id="hint">محادثة صوتية مباشرة: احكي متل ما بتحكي مع حدا، وفيك تقاطعه بأي وقت.</div>
+</div>
+<aside class="side">
+<h3>الأرقام اللي بيعرفها</h3>
+<div class="kpis" id="kpis"></div>
+<div class="small" id="dataNote"></div>
+<h3>المحادثة</h3>
+<div class="log" id="log"></div>
+</aside>
+</main>
+<footer>جسر AI Live · يعمل على Gemini Live · الأوامر على المنصة من داشبورد جسر AI على Claude</footer>
+</div>
+<dialog id="dlg">
+<h3 style="margin:0;font-family:Readex Pro">الإعدادات</h3>
+<label>مفتاح Gemini API (بينحفظ على جهازك بس)<input id="key" type="password" autocomplete="off" placeholder="الصق المفتاح هون"></label>
+<div class="small">ما عندك مفتاح؟ افتح <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> ← Create API key ← انسخه والصقه هون.</div>
+<label>الموديل<select id="model"><option value="gemini-3.8-live">gemini-3.8-live (مجاني)</option><option value="gemini-3.1-flash-live-preview">gemini-3.1-flash-live-preview</option></select></label>
+<label>موديل مخصص (اختياري)<input id="modelCustom" placeholder="اتركه فاضي"></label>
+<label>الصوت<select id="voice"><option value="">الافتراضي</option><option>Puck</option><option>Charon</option><option>Kore</option><option>Fenrir</option><option>Aoede</option><option>Orus</option><option>Zephyr</option></select></label>
+<label style="display:flex;gap:8px;align-items:center;color:var(--fg)"><input type="checkbox" id="names" style="width:auto"> شارك أسماء آخر الطلاب مع المساعد</label>
+<div class="small">بالفئة المجانية، Google بتستعمل المحادثات لتحسين منتجاتها. لهيك أسماء الطلاب مطفية افتراضياً، والإيميلات والأرقام ما بتنبعت أبداً.</div>
+<div class="row"><button class="btn" id="cancelDlg">إغلاق</button><button class="btn pri" id="saveDlg">حفظ</button></div>
+</dialog>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const st={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let D=null;
+try{ const rm=location.hash.match(/[#&]r=([^&]+)/); if(rm) localStorage.setItem('jl.robot',decodeURIComponent(rm[1])); }catch(e){}
+{ const rb=(()=>{try{return localStorage.getItem('jl.robot')}catch(e){return null}})(); if(rb) document.querySelectorAll('img').forEach(i=>i.src=rb); }
+try{ const m=location.hash.match(/[#&]d=([^&]+)/); if(m){ const b=m[1].replace(/-/g,'+').replace(/_/g,'/'); D=JSON.parse(decodeURIComponent(escape(atob(b)))); try{localStorage.setItem('jl.data',JSON.stringify(D))}catch(e){} history.replaceState(null,'',location.pathname+(/[#&]auto/.test(location.hash)?'#auto':'')); } }catch(e){ console.warn('bad data',e); }
+if(!D){ try{ D=JSON.parse(localStorage.getItem('jl.data')||'null'); }catch(e){} }
+if(!D && window.JESR_DATA) D=window.JESR_DATA;
+const STARS=n=>n==null?'—':(+n).toLocaleString('en');
+/* ---------- data panel ---------- */
+function renderData(){
+const k=$('#kpis');
+if(!D){ k.innerHTML=''; $('#dataNote').textContent='ما في بيانات لسا — افتح هالصفحة من زر المايك بداشبورد جسر AI.'; return; }
+const t=D.totals||{};
+k.innerHTML=[['الطلاب',STARS(t.students)],['دفعوا',STARS(t.paid)],['ما دفعوا',STARS(t.unpaid)],['الإيرادات','€'+STARS(Math.round(t.revenueEUR||0))],['جدد هالأسبوع',STARS(t.newWeek)],['مهام مفتوحة',STARS(t.openTasks)]].map(([l,v])=>`<div class="k"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+$('#dataNote').textContent='آخر تحديث للبيانات: '+(D.generatedAt?new Date(D.generatedAt).toLocaleString('ar',{dateStyle:'medium',timeStyle:'short'}):'—');
+}
+renderData();
+/* ---------- system prompt ---------- */
+function systemText(){
+const p=(D&&D.profile)||{name:'خالد المحمد العلي'};
+const shareNames=$('#names').checked;
+let s=`أنت "جسر AI"، المساعد الصوتي الشخصي لـ${p.name||'خالد'} (${p.nameEn||'Khaled Al-Mohammad Al-Ali'}).
+عنه: ${p.title||''}. مواليد ${p.dob||''}. من ${p.origin||''}، مقيم في ${p.residence||''}. المنصة: ${p.platform||'jesr-ai.com'}. البزنس: ${p.business||''}. ${p.notes||''}
+اليوم: ${new Date().toLocaleString('ar',{dateStyle:'full',timeStyle:'short'})}.
+أسلوبك: محادثة صوتية مباشرة. احكي باللهجة الشامية بشكل طبيعي ودافي، جمل قصيرة (١-٣ جمل)، بدون قوائم ولا رموز. إذا حكى خالد بلغة تانية جاوب بنفس اللغة. نادِه خالد.
+لا تخترع أرقام: استعمل البيانات تحت بس، وإذا شي مو موجود قول إنك ما بتعرفه هلق وإنه بيلاقيه بداشبورد جسر AI على Claude.
+ما فيك تنفذ أوامر على المنصة (فتح كورس، إضافة أو حظر طالب)؛ قلّه يطلبها من مساعد الداشبورد على Claude.`;
+if(D){
+const t=D.totals||{};
+s+=`\n\nبيانات منصة جسر AI (آخر تحديث ${D.generatedAt||''}):
+- الطلاب: ${t.students}، دفعوا: ${t.paid}، ما دفعوا لسا: ${t.unpaid}.
+- الإيرادات من الحجوزات الفعّالة: €${Math.round(t.revenueEUR||0)}${t.revenueOther?(' + '+t.revenueOther):''}، عدد الحجوزات: ${t.bookings}.
+- جدد اليوم: ${t.newToday}، هالأسبوع: ${t.newWeek}، آخر ٣٠ يوم: ${t.new30}.
+- حسب البلد: ${(D.byCountry||[]).map(x=>x[0]+' '+x[1]).join('، ')}.
+- حسب الشهر: ${(D.byMonth||[]).map(x=>x[0]+': '+x[1]).join('، ')}.
+- الكورسات: ${(D.courses||[]).join('، ')}.
+- المهام المفتوحة: ${(D.tasks||[]).map(x=>x.title+(x.due?' ('+x.due.slice(0,10)+')':'')).join('؛ ')||'ما في'}.
+- آخر التحديثات: ${(D.activity||[]).slice(0,8).join('؛ ')}.
+- الوكلاء: ${(D.agents||[]).join('، ')}.`;
+if(shareNames && D.recent) s+=`\n- آخر الطلاب المسجلين (الاسم، التاريخ، دفع؟): ${D.recent.map(r=>r.n+' '+r.d+' '+(r.paid?'دفع':'ما دفع')).join('؛ ')}.`;
+}
+return s;
+}
+/* ---------- settings ---------- */
+const dlg=$('#dlg');
+function loadSettings(){ $('#key').value=st.get('jl.key')||''; $('#model').value=st.get('jl.model')||'gemini-3.8-live'; $('#modelCustom').value=st.get('jl.modelCustom')||''; $('#voice').value=st.get('jl.voice')||''; $('#names').checked=st.get('jl.names')==='1'; }
+loadSettings();
+$('#setBtn').onclick=()=>{ loadSettings(); dlg.showModal(); };
+$('#cancelDlg').onclick=()=>dlg.close();
+$('#saveDlg').onclick=()=>{ st.set('jl.key',$('#key').value.trim()); st.set('jl.model',$('#model').value); st.set('jl.modelCustom',$('#modelCustom').value.trim()); st.set('jl.voice',$('#voice').value); st.set('jl.names',$('#names').checked?'1':'0'); dlg.close(); sys('انحفظت الإعدادات ✓'); };
+/* ---------- log ---------- */
+const logEl=$('#log'); let curU=null, curA=null;
+function bubble(c,t){ const d=document.createElement('div'); d.className='m '+c; d.textContent=t; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight; return d; }
+const sys=t=>bubble('s',t);
+function setState(s,t){ const m={idle:['','اضغط الزر وابدأ احكي'],conn:['mid','عم اتصل…'],listen:['on','عم اسمعك… احكي'],speak:['on','عم احكي…'],err:['bad',t||'صار خطأ']}; $('#dot').className='dot '+m[s][0]; $('#stateTxt').textContent=t||m[s][1]; }
+/* ---------- audio ---------- */
+let ws=null, inCtx=null, outCtx=null, stream=null, proc=null, src=null, analyserIn=null, analyserOut=null, nextT=0, playing=[], live=false;
+const b64=buf=>{ let s=''; const b=new Uint8Array(buf); for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); };
+const unb64=s=>{ const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u.buffer; };
+function downsample(f32, inRate, outRate){ if(inRate===outRate) return f32; const r=inRate/outRate, n=Math.floor(f32.length/r), o=new Float32Array(n); for(let i=0;i<n;i++){ const s=Math.floor(i*r), e=Math.min(f32.length,Math.floor((i+1)*r)); let a=0; for(let j=s;j<e;j++) a+=f32[j]; o[i]=a/Math.max(1,e-s);} return o; }
+function toPCM16(f32){ const o=new Int16Array(f32.length); for(let i=0;i<f32.length;i++){ const v=Math.max(-1,Math.min(1,f32[i])); o[i]=v<0?v*0x8000:v*0x7fff; } return o.buffer; }
+function playPCM(buf){
+const i16=new Int16Array(buf), f=new Float32Array(i16.length); for(let i=0;i<i16.length;i++) f[i]=i16[i]/32768;
+const ab=outCtx.createBuffer(1,f.length,24000); ab.copyToChannel(f,0);
+const s=outCtx.createBufferSource(); s.buffer=ab; s.connect(analyserOut);
+const t=Math.max(outCtx.currentTime+0.03,nextT); s.start(t); nextT=t+ab.duration; playing.push(s); s.onended=()=>{ playing=playing.filter(x=>x!==s); if(!playing.length && live) setState('listen'); };
+setState('speak');
+}
+function stopPlayback(){ playing.forEach(s=>{ try{s.stop()}catch(e){} }); playing=[]; nextT=0; }
+async function start(){
+const key=st.get('jl.key'); if(!key){ dlg.showModal(); sys('حط مفتاح Gemini API أول.'); return; }
+setState('conn');
+try{
+stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
+}catch(e){ setState('err','ما قدرت افتح المايك — اسمحله من Chrome (أيقونة القفل جنب العنوان)'); return; }
+inCtx=new AudioContext(); outCtx=new AudioContext({sampleRate:24000});
+analyserIn=inCtx.createAnalyser(); analyserIn.fftSize=512; analyserOut=outCtx.createAnalyser(); analyserOut.fftSize=512; analyserOut.connect(outCtx.destination);
+src=inCtx.createMediaStreamSource(stream); src.connect(analyserIn);
+proc=inCtx.createScriptProcessor(4096,1,1); src.connect(proc); const mute=inCtx.createGain(); mute.gain.value=0; proc.connect(mute); mute.connect(inCtx.destination);
+const model=(st.get('jl.modelCustom')||st.get('jl.model')||'gemini-3.8-live').replace(/^models\//,'');
+ws=new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key='+encodeURIComponent(key));
+let ready=false;
+ws.onopen=()=>{
+const setup={ model:'models/'+model, responseModalities:['AUDIO'], systemInstruction:{parts:[{text:systemText()}]}, inputAudioTranscription:{}, outputAudioTranscription:{} };
+const v=st.get('jl.voice'); if(v) setup.speechConfig={voiceConfig:{prebuiltVoiceConfig:{voiceName:v}}};
+ws.send(JSON.stringify({setup}));
+};
+ws.onmessage=async ev=>{
+let txt=ev.data; if(txt instanceof Blob) txt=await txt.text(); else if(txt instanceof ArrayBuffer) txt=new TextDecoder().decode(txt);
+let r; try{ r=JSON.parse(txt); }catch(e){ return; }
+if(r.setupComplete!==undefined && !ready){ ready=true; live=true; setState('listen'); $('#callBtn').classList.add('on'); sys('بلّشت المحادثة 🎙'); }
+const sc=r.serverContent; if(!sc) return;
+if(sc.interrupted){ stopPlayback(); curA=null; setState('listen'); }
+if(sc.inputTranscription&&sc.inputTranscription.text){ if(!curU) curU=bubble('u',''); curU.textContent+=sc.inputTranscription.text; logEl.scrollTop=logEl.scrollHeight; }
+if(sc.outputTranscription&&sc.outputTranscription.text){ curU=null; if(!curA) curA=bubble('a',''); curA.textContent+=sc.outputTranscription.text; logEl.scrollTop=logEl.scrollHeight; }
+if(sc.modelTurn&&sc.modelTurn.parts){ for(const p of sc.modelTurn.parts){ if(p.inlineData&&p.inlineData.data) playPCM(unb64(p.inlineData.data)); else if(p.text&&!sc.outputTranscription){ curU=null; if(!curA) curA=bubble('a',''); curA.textContent+=p.text; } } }
+if(sc.turnComplete||sc.generationComplete){ curA=null; curU=null; }
+};
+ws.onerror=()=>{ setState('err','ما قدرت اتصل بـ Gemini — تأكد من المفتاح واسم الموديل'); };
+ws.onclose=ev=>{ const was=live; stop(true); if(ev.code!==1000){ setState('err','انقطع الاتصال ('+ev.code+'): '+(ev.reason||'تأكد من المفتاح والموديل')); sys('انقطع: '+(ev.reason||ev.code)); } else if(was) sys('انتهت المحادثة'); };
+proc.onaudioprocess=e=>{ if(!ws||ws.readyState!==1||!ready) return; const d=downsample(e.inputBuffer.getChannelData(0), inCtx.sampleRate, 16000); ws.send(JSON.stringify({realtimeInput:{audio:{data:b64(toPCM16(d)),mimeType:'audio/pcm;rate=16000'}}})); };
+}
+function stop(fromClose){
+live=false; $('#callBtn').classList.remove('on');
+try{ proc&&proc.disconnect(); src&&src.disconnect(); }catch(e){}
+stream&&stream.getTracks().forEach(t=>t.stop()); stream=null;
+stopPlayback(); try{ inCtx&&inCtx.close(); }catch(e){} inCtx=null; analyserIn=null;
+if(!fromClose && ws){ try{ ws.close(1000); }catch(e){} } ws=null;
+setTimeout(()=>{ try{ outCtx&&outCtx.close(); }catch(e){} outCtx=null; analyserOut=null; },300);
+if(!fromClose) setState('idle');
+}
+$('#callBtn').onclick=()=>{ if(live||ws) stop(false); else start(); };
+addEventListener('keydown',e=>{ if(e.code==='Space' && document.activeElement===document.body){ e.preventDefault(); $('#callBtn').click(); } });
+/* ---------- orb ---------- */
+const cv=$('#cv'), cx=cv.getContext('2d'); let amp=0;
+function level(an){ if(!an) return 0; const a=new Uint8Array(an.fftSize); an.getByteTimeDomainData(a); let s=0; for(const v of a){ const x=(v-128)/128; s+=x*x; } return Math.sqrt(s/a.length); }
+function draw(t){
+t/=1000; const r=cv.getBoundingClientRect(), d=Math.min(2,devicePixelRatio||1); if(cv.width!==Math.round(r.width*d)){ cv.width=Math.round(r.width*d); cv.height=Math.round(r.height*d); }
+const W=cv.width,H=cv.height,X=W/2,Y=H/2,R=Math.min(W,H)/2; cx.clearRect(0,0,W,H);
+const lv=Math.min(1,(level(analyserOut)*4)+(level(analyserIn)*3)); amp+=((live?.12:.06)+lv-amp)*.18;
+$('#robot img').style.transform=`scale(${1.08+amp*.12})`;
+const g=cx.createRadialGradient(X,Y,R*.05,X,Y,R*.62); g.addColorStop(0,'rgba(190,240,255,.95)'); g.addColorStop(.3,'#62d6ff'); g.addColorStop(.6,'rgba(47,69,255,.5)'); g.addColorStop(1,'rgba(0,0,0,0)');
+cx.globalAlpha=.5+amp*.5; cx.fillStyle=g; cx.beginPath(); cx.arc(X,Y,R*(.6+amp*.08),0,7); cx.fill(); cx.globalAlpha=1;
+const N=120,r0=R*.42; for(let i=0;i<N;i++){ const a=i/N*Math.PI*2-Math.PI/2, n=Math.abs(Math.sin(i*1.7+t*3.1)+Math.sin(i*.63-t*2.3)+Math.sin(i*2.9+t*5.7))/3, len=R*(.02+amp*.3*n); cx.strokeStyle=i%2?'#62d6ff':'#8f3dff'; cx.globalAlpha=.35+amp*.6; cx.lineWidth=2*d; cx.beginPath(); cx.moveTo(X+Math.cos(a)*r0,Y+Math.sin(a)*r0); cx.lineTo(X+Math.cos(a)*(r0+len),Y+Math.sin(a)*(r0+len)); cx.stroke(); }
+cx.globalAlpha=1;
+[[.66,1.5,'#62d6ff',.5],[.7,1,'#2f45ff',.6],[.86,1,'#62d6ff',.25]].forEach(([rr,w,c,al])=>{ cx.strokeStyle=c; cx.globalAlpha=al; cx.lineWidth=w*d; cx.beginPath(); cx.arc(X,Y,R*rr,0,7); cx.stroke(); });
+[[.74,3,0,1.2,'#62d6ff'],[.78,2,2.4,.9,'#8f3dff'],[.82,1.5,4.1,1.6,'#2f45ff']].forEach(([rr,w,off,len,c],k)=>{ const a0=off+t*(live?1.2:.4)*(k%2?-1:1); cx.strokeStyle=c; cx.globalAlpha=.85; cx.lineWidth=w*d; cx.beginPath(); cx.arc(X,Y,R*rr,a0,a0+len); cx.stroke(); });
+for(let i=0;i<72;i++){ const a=i/72*Math.PI*2+t*.08, lg=i%6===0; cx.strokeStyle='#62d6ff'; cx.globalAlpha=lg?.8:.35; cx.lineWidth=(lg?2:1)*d; cx.beginPath(); cx.moveTo(X+Math.cos(a)*R*.9,Y+Math.sin(a)*R*.9); cx.lineTo(X+Math.cos(a)*R*(lg?.96:.93),Y+Math.sin(a)*R*(lg?.96:.93)); cx.stroke(); }
+cx.globalAlpha=1; requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+if(!st.get('jl.key')) setTimeout(()=>{ dlg.showModal(); sys('أول مرة: حط مفتاح Gemini API من الإعدادات.'); },400);
+else if(/auto/.test(location.hash)){ setTimeout(()=>{ start().catch(()=>{}); },300); }
+document.addEventListener('click',()=>{ try{ outCtx&&outCtx.state==='suspended'&&outCtx.resume(); inCtx&&inCtx.state==='suspended'&&inCtx.resume(); }catch(e){} });
+})();
+</script>
+</body>
+</html>
