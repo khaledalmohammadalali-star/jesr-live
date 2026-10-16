@@ -181,8 +181,8 @@ const model=(st.get('jl.modelCustom')||st.get('jl.model')||'gemini-3.8-live').re
 ws=new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key='+encodeURIComponent(key));
 let ready=false;
 ws.onopen=()=>{
-const setup={ model:'models/'+model, responseModalities:['AUDIO'], systemInstruction:{parts:[{text:systemText()}]}, inputAudioTranscription:{}, outputAudioTranscription:{} };
-const v=st.get('jl.voice'); if(v) setup.speechConfig={voiceConfig:{prebuiltVoiceConfig:{voiceName:v}}};
+const setup={ model:'models/'+model, generationConfig:{responseModalities:['AUDIO']}, systemInstruction:{parts:[{text:systemText()}]}, inputAudioTranscription:{}, outputAudioTranscription:{} };
+const v=st.get('jl.voice'); if(v) setup.generationConfig.speechConfig={voiceConfig:{prebuiltVoiceConfig:{voiceName:v}}};
 ws.send(JSON.stringify({setup}));
 };
 ws.onmessage=async ev=>{
